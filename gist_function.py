@@ -298,6 +298,9 @@ def cisco_logon(ssh):
     ssh.sendline(tac_pssw) 
     #time.sleep(1)  
     match=ssh.expect(["#", pexpect.TIMEOUT, pexpect.EOF])
+    ssh.sendline("terminal length 0")
+    ssh.expect("#")
+    
     if match==0:
         #print("connected sucsesfully")
         return(True)
@@ -393,6 +396,7 @@ def cli_parse_regexp(cli,send_line,prompt,search_line):
 def cli_parse_strings(cli, send_line, prompt, search_line):
     return_line=[]
     cli.sendline(send_line)
+    time.sleep(2) 
     cli.expect(prompt)
     result=cli.before
     result=output_decode(result)
