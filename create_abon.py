@@ -3,14 +3,43 @@
 from gist_function import  * 
 from sys import argv
 
-org_id = argv[1]
+help_msg='''
+**********************************
+USAGE:
+./create_abon.py $modul_id \n
+-a\t\tuse all client subnets (by default affect /24 prefixes only)
+-h, --help\tshow this message\n
+**********************************'''
+
+flag_list=argv
+help_flag=False
+all_net_flag=False
+
+if ("-h" in flag_list) or ("help" in flag_list):
+    raise SystemExit(help_msg)
+
+if ("-a" in flag_list): all_net_flag=True
+
+try:
+    org_id = argv[1]
+except IndexError:
+    raise SystemExit(help_msg)
+if org_id.isdigit() !=True:
+    print("\n\nERROR: non-numeric modul_id\n")
+    raise SystemExit(help_msg)
+
+
 
 
 def main():
 #get  nets
     query=(f"select net from link where id_org='{org_id}' and net like '%/30'")
     link_net=sql_get_data(modul_db,query)
+    #select /24 client net
     query=(f"select net from client where id_org='{org_id}' and net like '%/24'")
+    if (all_net_flag):
+        #select all
+        query=(f"select net from client where id_org='{org_id}'")
     client_net=sql_get_data(modul_db,query)
     
     
@@ -43,6 +72,10 @@ def main():
     #get vlan and uzel_addr from modul
     query=(f"select vlan, `uzel`.ip from org inner join uzel on org.uzel=uzel.id where org.id='{org_id}' and actual='1'")
     org_vlan,org_uzel=sql_get_data(modul_db, query)[0]
+    #exceptiom for TTK-L3
+    if org_uzel=="192.168.2.19":
+        print("please use l3 static routes script")
+        return()
     if org_vlan.isdigit() != True:
         print("incorrect vlan ID")
         raise ValueError    
