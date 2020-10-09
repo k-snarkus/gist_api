@@ -220,7 +220,6 @@ def jun_main(uzel_addr, link=[], client=[], remove=[], vlan=''):
                 for net in client:
                     client_ip=jun_ip_intf(net)
                     add_candidate.append(f"set {subintf} family inet address {client_ip}")
-#        print(remove_candidate)            
     
 
         for line in remove_candidate:
@@ -264,19 +263,19 @@ def cisco_apply_strings(conn, conf_strings):
         if "Gi" in line:
             current_intf=line
         conn.sendline(line)
-        match=conn.expect(["#","deleting primary"])
-        if match==0: 
-            print("send  "+line)
-            continue
-        elif match==1:
+        match=conn.expect(["#","deleting primary","overlaps"])
+        if match==1:
             conn.expect("#")
-            #print(current_intf)
             swap_ip=cli_parse_strings(conn, f"do sh run {current_intf} | i addr", "#", "ip add")
-            #print(swap_ip)
             swap_ip_line=swap_ip[0][:-10]
             conn.sendline(swap_ip_line)
-            #print(swap_ip_line)
-            conn.expect("#") 
+            conn.expect("#")
+        elif match==2:
+            raise SystemExit("\n\nError: ip address overlaps on line:\n\t"+line)
+        elif match==0: 
+            print("(#debug)\tsend  "+line)
+            continue
+    
     conn.sendline("end")
     conn.expect("#")
     return()
@@ -286,6 +285,7 @@ def cisco_write(conn):
     conn.expect("Destination filename")
     conn.sendline("\r\n")
     conn.expect("OK")
+    print("Save OK")
     return()
     
        
@@ -321,16 +321,15 @@ def jun_apply_strings(ssh, conf_strings):
     for line in conf_strings: 
         ssh.sendline(line) 
         ssh.expect("# $") 
-        print("send  "+line) 
+        print("(#debug)send  "+line) 
     ssh.sendline("show| compare") 
     ssh.expect("# $")
     compare_str=ssh.before  
     ssh.sendline("commit and-quit") 
     time.sleep(5) 
-    #print(conf_strings) 
     match=ssh.expect(["commit complete","failed"])
     if match== 0:
-        print(compare_str.decode(encoding="utf-8"))
+        print("\n\n"+compare_str.decode(encoding="utf-8"))
         return()
     if match==1:
         print("commit error")
@@ -396,11 +395,10 @@ def cli_parse_regexp(cli,send_line,prompt,search_line):
 def cli_parse_strings(cli, send_line, prompt, search_line):
     return_line=[]
     cli.sendline(send_line)
-    time.sleep(2) 
+    #time.sleep(2) 
     cli.expect(prompt)
     result=cli.before
     result=output_decode(result)
-    #print(result)
     if (len(result) > 0): 
         for line in result:    
             if (search_line in line):
@@ -428,8 +426,10 @@ def cisco_get_phy_port(cli):
 
 
 def cisco_get_config(cli, nets):
-    #data check
     conf_strings=[]
+
+
+    #data check
     if type(nets) !=list: 
         return()
     if len(nets)==0:
