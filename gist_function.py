@@ -82,10 +82,11 @@ def cisco_main(uzel_addr, link=[], client=[], remove=[], vlan=''):
             cisco_apply_strings(cli, remove_string)
             print("-\t"+"\n\t".join(remove_string))
             cisco_write(cli)
-        if vlan=='':
-            return()
         if len(link+client)==0:
             return()
+        if vlan=='':
+            return()
+            
         
 
         subintf=(cisco_get_phy_port(cli)+'.'+vlan)
