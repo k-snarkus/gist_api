@@ -14,6 +14,7 @@ sub_template=('''interface {intf}
 encapsulation dot1Q {vlan}
 ip vrf forwarding i-net
 ip tcp adjust-mss 1432
+no shutdown
 no snmp trap link-status
 no ip proxy-arp
  ip address {ip} {mask} {sec}
@@ -21,6 +22,7 @@ exit''')
 
 add_ip_template=('''interface {intf}
 ip tcp adjust-mss 1432
+no shutdown
 no snmp trap link-status
 no ip proxy-arp
  ip address {ip} {mask} sec
