@@ -191,11 +191,12 @@ def jun_main(uzel_addr, link=[], client=[], remove=[], vlan=''):
                     remove_string[idx]=("delete "+remove_string[idx][3:])
             jun_apply_strings(cli, remove_string)
             print("-\t"+"\n\t".join(remove_string))
-        if vlan=='':
-            print("no vlan defined!!!\n\nExiting...")
-            return()
+
         if len(link+client)==0:
             return()
+        if vlan=='':
+            print("no vlan defined!!!\n\nExiting...")
+            return()    
         
 
         #subintf=(cisco_get_phy_port(cli)+'.'+vlan)
