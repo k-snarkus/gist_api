@@ -326,7 +326,7 @@ def jun_apply_strings(ssh, conf_strings):
         ssh.sendline(line) 
         ssh.expect("# $") 
         print("(#debug)send  "+line) 
-    ssh.sendline("show| compare") 
+    ssh.sendline("show| compare | no-more") 
     ssh.expect("# $")
     compare_str=ssh.before  
     ssh.sendline("commit and-quit") 
